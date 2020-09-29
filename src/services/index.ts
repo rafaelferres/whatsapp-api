@@ -4,35 +4,46 @@ import { IConfig } from "../interfaces/";
 import { logger } from "./logger";
 import puppeteer from "puppeteer-core";
 
-import socketIo, {Server} from "socket.io";
+import socketIo, {Server as ServerIO} from "socket.io";
 import Queue from "better-queue";
 import { Chromium } from "./chromium";
 import WhatsApp from "./whatsapp";
 import utils from "./utils";
+import http, {Server} from "http";
+import express from "express";
 
 class Service {
 
     private config : IConfig;
-    private io: Server = null;
+    private io: ServerIO = null;
     private queue: any = {};
     private chromiumInstall: any;
     private browser: puppeteer.Browser;
     private page: puppeteer.Page;
+    private http: Server;
+    private app: express.Application;
 
     constructor(){
         this.config = getConfig();
     }
 
-    public async run(){
+    private buildServer(){
+        this.app = express();
+        this.app.use(express.json());
+        this.http = http.createServer(this.app);
+        this.io = socketIo(this.http);
+    }
 
-        logger.writeLines.info("Starting Socket.IO ...");
-        this.io = socketIo(this.config.port);
-        logger.writeLines.success(`Socket.IO running on port ${this.config.port}`);
+    public async run(){
+        logger.writeLines.info("Starting Server ...");
+        this.buildServer();
+        await this.http.listen(this.config.port);
+        logger.writeLines.success(`Server running on port ${this.config.port}`);
 
         this.io.on("connect" ,(socket) => {
             socket.on("message", (data) => {
                 console.log(data);
-            })
+            });
         });
 
         logger.writeLines.info("Downloading Chromium ...");
