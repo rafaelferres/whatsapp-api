@@ -8,8 +8,6 @@ console.log(
   "color: #27ae60"
 );
 
-var socket = io("http://localhost:3001");
-
 socket.on("connect", () => {
   console.log("%c ✅ Connected to socket", "color: #27ae60");
 });

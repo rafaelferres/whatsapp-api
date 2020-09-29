@@ -16,7 +16,7 @@ class Service {
 
     private config : IConfig;
     private io: ServerIO = null;
-    private queue: any = {};
+    private queue: { message_queue: Queue } = { message_queue: null};
     private chromiumInstall: any;
     private browser: puppeteer.Browser;
     private page: puppeteer.Page;
@@ -32,6 +32,26 @@ class Service {
         this.app.use(express.json());
         this.http = http.createServer(this.app);
         this.io = socketIo(this.http);
+    }
+
+    private buildQueue(){
+        this.queue.message_queue = new Queue(async (input, cb) => {
+            await utils.delay(500);
+            if (input) {
+                try {
+                    var x: any = await WhatsApp.sendMessage(this.page, input);
+
+                    if (x.status == true) {
+                        logger.writeLines.success('Message ' + input.type + ' sended to ' + input.to);
+                    }else{
+                        logger.writeLines.error('Message ' + input.type + ' is not sended to ' + input.to + ' because : ' + x.message);
+                    }
+                }catch(err){
+
+                }
+            }
+            cb(null, input);
+        }, { concurrent: 1 });
     }
 
     public async run(){
@@ -64,22 +84,20 @@ class Service {
         logger.writeLines.success("Opening Whatsapp ... done!");
 
         logger.writeLines.info("Login Whatsapp ...");
-        await WhatsApp.login(this.page);
+        await WhatsApp.login(this.page, this.config.port);
         logger.writeLines.success("Login Whatsapp ... done!");
 
         while (!WhatsApp.isLogin) {
             await utils.delay(300);
         }
+        
+        logger.writeLines.info("Building queue ...");
+        await utils.delay(5000);
+        await this.buildQueue();
+        logger.writeLines.success("Building queue ... done!");
 
         logger.writeLines.success("Running ...");
-        /*
-        this.queue.message = new Queue(async (input, cb) => {
-            cb(null, input);
-        }, { concurrent: 1 });
-        */
-        /*this.io.on("connection", () => {
-            console.log("a");
-        });*/
+
     }
 }
 
