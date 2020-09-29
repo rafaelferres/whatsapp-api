@@ -68,7 +68,7 @@ class Whatsapp {
                             link.click();
                             document.body.removeChild(link);
                         `);
-                        
+
                     await utils.delay(300);
 
                     var res = await page.evaluate(`window.WAPI.sendMessage2('` + data.to + `@c.us','` + data.body + `');`);

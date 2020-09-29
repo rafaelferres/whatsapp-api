@@ -11,6 +11,8 @@ import WhatsApp from "./whatsapp";
 import utils from "./utils";
 import http, {Server} from "http";
 import express from "express";
+import {EventEmitter} from "events";
+import Routes from "../controllers/Router";
 
 class Service {
 
@@ -22,9 +24,12 @@ class Service {
     private page: puppeteer.Page;
     private http: Server;
     private app: express.Application;
+    public event: EventEmitter;
+    private routes: Routes;
 
     constructor(){
         this.config = getConfig();
+        this.event = new EventEmitter();
     }
 
     private buildServer(){
@@ -40,7 +45,7 @@ class Service {
             if (input) {
                 try {
                     var x: any = await WhatsApp.sendMessage(this.page, input);
-
+                    this.event.emit("send", x);
                     if (x.status == true) {
                         logger.writeLines.success('Message ' + input.type + ' sended to ' + input.to);
                     }else{
@@ -54,17 +59,25 @@ class Service {
         }, { concurrent: 1 });
     }
 
+    private buildIO(){
+        this.io.on("connect", (socket) => {
+            socket.on("message", (data) => {
+                this.event.emit("receive", data);
+            });
+        })
+    }
+
+    private buildRoutes(): void {
+        this.routes = new Routes(this.queue.message_queue);
+        this.app.use(this.routes.routes);
+    }
+
     public async run(){
         logger.writeLines.info("Starting Server ...");
         this.buildServer();
         await this.http.listen(this.config.port);
+        await this.buildIO();
         logger.writeLines.success(`Server running on port ${this.config.port}`);
-
-        this.io.on("connect" ,(socket) => {
-            socket.on("message", (data) => {
-                console.log(data);
-            });
-        });
 
         logger.writeLines.info("Downloading Chromium ...");
         this.chromiumInstall = await Chromium.downloadChromium(); 
@@ -96,8 +109,9 @@ class Service {
         await this.buildQueue();
         logger.writeLines.success("Building queue ... done!");
 
-        logger.writeLines.success("Running ...");
+        await this.buildRoutes();
 
+        logger.writeLines.success("Running ...");
     }
 }
 
