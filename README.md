@@ -19,6 +19,25 @@ TOKEN=616ac9b5-3dda-4911-83bb-b718fed48330 #bearer token to consume api
 PORT=3001 #Port of Socket.IO and Express
 ```
 
+Install modules : 
+
+```
+yarn
+```
+or
+```
+npm install
+```
+
+Run: 
+```
+yarn dev
+```
+or
+```
+npm run-script dev
+```
+
 Access the ./src/index.ts file to adapt the functions as needed.
 
 ```typescript
