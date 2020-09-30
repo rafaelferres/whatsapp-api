@@ -1,5 +1,6 @@
 import { Router, NextFunction, Request, Response } from "express";
 import Message from "./Message";
+import Middleware from "./Middleware";
 
 import Queue from "better-queue";
 
@@ -14,9 +15,7 @@ class Routes {
   }
 
   constructRoutes() {
-    this.routes.get("/", (req, res) => res.send(`a`));
-
-    this.routes.post("/api/v1/message", (req: Request, res: Response) => Message.send(req, res, this.queue));
+    this.routes.post("/api/v1/message", Middleware.verifyBearerToken, Middleware.validateCredentials, Middleware.checkMessageData, (req: Request, res: Response) => Message.send(req, res, this.queue));
   }
 }
 
