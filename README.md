@@ -4,7 +4,7 @@ API for automation of your whatsapp
 
 ## Installation
 
-To install Whatsapp Unofficial API.
+To install Whatsapp Unofficial API. WAPI.js
 
 ```bash
 git clone https://github.com/rafaelferres/whatsapp-api.git
