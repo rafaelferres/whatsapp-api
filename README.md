@@ -38,7 +38,7 @@ service.event.on("send", (data) => { // Event that returns the sending of messag
 ```
 
 ## Endpoint
-Post to / api / v1 / message by passing the token configured in the .env in the Bearer Token and sending a json in the following structure:
+Post to /api/v1/message by passing the token configured in the .env in the Bearer Token and sending a json in the following structure:
 
 ``` JSON
 {
